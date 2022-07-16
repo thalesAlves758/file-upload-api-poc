@@ -29,7 +29,7 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/file', upload.single('file'), (req, res) => {
-  res.send(req.file);
+  res.send('deu certo');
 });
 
 app.listen(5000, () => {
