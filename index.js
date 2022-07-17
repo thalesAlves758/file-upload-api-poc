@@ -1,24 +1,28 @@
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
 import multer from 'multer';
+import aws from 'aws-sdk';
+import multerS3 from 'multer-s3';
+import dotenv from 'dotenv';
+import crypto from 'crypto';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
+dotenv.config();
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    if (!fs.existsSync(UPLOAD_DIR)) {
-      fs.mkdirSync(UPLOAD_DIR);
-    }
+const storage = multerS3({
+  s3: new aws.S3(),
+  bucket: process.env.BUCKET_NAME,
+  contentType: multerS3.AUTO_CONTENT_TYPE,
+  acl: 'public-read',
+  key: (req, file, cb) => {
+    crypto.randomBytes(16, (err, hash) => {
+      if (err) {
+        cb(err);
+      }
 
-    cb(null, UPLOAD_DIR);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
+      const filename = `${hash.toString('hex')}-${file.originalname}`;
+
+      cb(null, filename);
+    });
   },
 });
 
@@ -29,7 +33,9 @@ app.use(cors());
 app.use(express.json());
 
 app.post('/file', upload.single('file'), (req, res) => {
-  res.send('deu certo');
+  const { originalname, size, key, location } = req.file;
+
+  res.send({ originalname, size, key, location });
 });
 
 app.listen(5000, () => {
