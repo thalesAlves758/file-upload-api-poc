@@ -28,7 +28,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post('/file', upload.single('file'), (req, res) => {
+app.post('/file', upload.array('file', 3), (req, res) => {
   res.send('deu certo');
 });
 
