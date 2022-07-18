@@ -27,6 +27,7 @@ app.post('/file', (req, res) => {
   form.parse(req, (err, fields, files) => {
     if (err) {
       res.status(500).send({ error: 'Erro ao salvar o arquivo' });
+      return;
     }
 
     res.send('deu certo');
